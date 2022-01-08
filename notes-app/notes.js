@@ -4,7 +4,7 @@ const chalk = require('chalk')
 
 
 const getNotes = function() {
-    return 'your Notes...'
+    return 'your Notes.........'
 }
 
 const addNote = function (title, body) {
