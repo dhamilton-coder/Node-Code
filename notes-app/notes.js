@@ -19,7 +19,7 @@ notes.push({
     body: body
 })
 saveNotes(notes)
-console.log('New Note Added...')
+console.log('New Note Added.........')
    }
    else {
        console.log('Note Title Taken')
