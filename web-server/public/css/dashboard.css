@@ -1,0 +1,16 @@
+h1 {
+  color: crimson;
+}
+
+
+
+img {
+    width: 1000px;
+}
+
+header a {
+  color: cornflowerblue;
+  margin-right: 16px;
+  margin-left: 16px;
+  text-decoration: none;
+}
