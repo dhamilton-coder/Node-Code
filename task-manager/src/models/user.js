@@ -1,3 +1,6 @@
+
+//Imports
+
 const mongoose = require('mongoose')
 const mongo = require('mongodb')
 const mongoClient = mongo.MongoClient
@@ -6,7 +9,7 @@ const validator = require('validator')
 
 
 
-
+//Create New Model Using Mongoose
 
 const User = mongoose.model('User', {
     name: {
