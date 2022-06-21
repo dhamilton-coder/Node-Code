@@ -1,5 +1,6 @@
 const express = require('express')
 const Task = require('../models/task')
+const bcrypt = require('bcryptjs')
 const router = new express.Router()
 
 //Route for Creating new Task via http POST request
@@ -50,7 +51,7 @@ router.get("/tasks/:id", (req, res) => {
 
 //Route for Updating a Task from the Tasks collection via http PATCH request
 
-router.patch('/tasks/:id', (req, res) => {
+router.patch('/tasks/:id', async (req, res) => {
     const updates = Object.keys(req.body)
     const allowedUpdates = ['task', 'completed']
     const isValid = updates.every((update) => allowedUpdates.includes(update))
@@ -58,15 +59,28 @@ router.patch('/tasks/:id', (req, res) => {
         if (!isValid) {
         return res.status(400).send( {error : 'Invalid Update Data'} )
         }
+    try {
+        const task = await Task.findById(req.params.id)
+        if (!task) {
+            return  res.status(404).send()
+         }
+        updates.forEach((update) => {
+            task[update] = req.body[update]
+        })
+        await task.save()
+        res.send(task)
+    } catch (e) {
+        res.status(400).send()
+    }
     
-    Task.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true}).then((user) => {
-        if (!user) {
-         return res.status(404).send()
-        } 
-            res.send(user)
-        }).catch((e) => {
-            res.status(400).send()
-        })    
+    // Task.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true}).then((user) => {
+    //     if (!user) {
+    //      return res.status(404).send()
+    //     } 
+    //         res.send(user)
+    //     }).catch((e) => {
+    //         res.status(400).send()
+    //     })    
 })
 
 
