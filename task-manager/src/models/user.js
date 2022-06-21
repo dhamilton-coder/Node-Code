@@ -4,14 +4,10 @@
 const mongoose = require('mongoose')
 const mongo = require('mongodb')
 const mongoClient = mongo.MongoClient
+const bcrypt = require('bcryptjs')
 const validator = require('validator')
 
-
-
-
-//Create New Model Using Mongoose
-
-const User = mongoose.model('User', {
+const UserSchema = new mongoose.Schema( {
     name: {
        type: String,
        required: true,
@@ -54,11 +50,31 @@ const User = mongoose.model('User', {
     }
 })
 
-const me = new User({
-    name: '     WONG     ',
-    email: 'WONG@CHIMAIL.CHOM      ',
-    password: '         fgsddd'
+
+UserSchema.pre('save', async function (next) {
+const user = this
+
+if (user.isModified('password')) {
+    user.password = await bcrypt.hash(user.password, 8)
+}
+
+console.log('just before saving')
+
+    next()
 })
+
+UserSchema.pre('updateOne', async function (next) {
+const user = this
+
+console.log('Test message')
+})
+
+
+//Create New Model Using Mongoose
+
+const User = mongoose.model('User', UserSchema)
+
+
 
 
 module.exports = User
