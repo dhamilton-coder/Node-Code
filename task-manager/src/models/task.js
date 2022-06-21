@@ -5,11 +5,7 @@ const mongo = require('mongodb')
 const mongoClient = mongo.MongoClient
 const validator = require('validator')
 
-
-
-//Create New Model Using Mongoose
-
-const Task = mongoose.model('task', {
+const taskSchema = new mongoose.Schema({
     task: {
         type: String,
         required: true,
@@ -22,6 +18,21 @@ const Task = mongoose.model('task', {
     }
 
 })
+
+taskSchema.pre('save', function(next) {
+const task = this
+
+console.log('Before a save')
+
+next()
+})
+
+
+
+
+//Create New Model Using Mongoose
+
+const Task = mongoose.model('task', taskSchema)
 
 
 module.exports = Task
