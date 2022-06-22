@@ -1,3 +1,6 @@
+
+//Imports
+
 const express = require('express')
 const Task = require('../models/task')
 const bcrypt = require('bcryptjs')
@@ -39,9 +42,11 @@ router.get("/tasks/:id", (req, res) => {
     const _id = req.params.id
 
     Task.findById(_id).then((user) => {
+
         if (!user) {
     return res.status(404).send()
         }
+
     res.send(user)
     }).catch((e) => {
         res.status(500)
@@ -58,29 +63,24 @@ router.patch('/tasks/:id', async (req, res) => {
 
         if (!isValid) {
         return res.status(400).send( {error : 'Invalid Update Data'} )
-        }
+       }
+       
     try {
         const task = await Task.findById(req.params.id)
+       
         if (!task) {
             return  res.status(404).send()
          }
+         
         updates.forEach((update) => {
             task[update] = req.body[update]
         })
         await task.save()
-        res.send(task)
+        res.send(task)    
     } catch (e) {
         res.status(400).send()
     }
-    
-    // Task.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true}).then((user) => {
-    //     if (!user) {
-    //      return res.status(404).send()
-    //     } 
-    //         res.send(user)
-    //     }).catch((e) => {
-    //         res.status(400).send()
-    //     })    
+     
 })
 
 
