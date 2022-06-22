@@ -7,6 +7,8 @@ const mongoClient = mongo.MongoClient
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
 
+//Schema to pass into Model
+
 const UserSchema = new mongoose.Schema( {
     name: {
        type: String,
@@ -16,6 +18,7 @@ const UserSchema = new mongoose.Schema( {
     },
     email: {
         type: String,
+        unique: true,
         required: true,
         trim: true,
         lowercase: true,
@@ -51,6 +54,22 @@ const UserSchema = new mongoose.Schema( {
 })
 
 
+UserSchema.statics.findByCredentials = async (email, password) => {
+    const user = await User.findOne({ email })
+
+    if (!user) {
+        throw new Error('Unable to login')
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password)
+
+    if (!isMatch) {
+        throw new Error('Unable to login')
+    }
+
+    return user
+}
+
 UserSchema.pre('save', async function (next) {
 const user = this
 
@@ -62,13 +81,6 @@ console.log('just before saving')
 
     next()
 })
-
-UserSchema.pre('updateOne', async function (next) {
-const user = this
-
-console.log('Test message')
-})
-
 
 //Create New Model Using Mongoose
 
