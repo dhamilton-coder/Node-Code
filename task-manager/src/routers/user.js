@@ -3,6 +3,7 @@
 
 const express = require('express')
 const User = require('../models/user')
+const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs')
 const router = new express.Router()
 
@@ -27,7 +28,22 @@ router.post("/users", async (req, res) => {
 router.post('/users/login', async (req, res) => {
     try {
         const user = await User.findByCredentials(req.body.email, req.body.password)
-        res.send(user)
+        const token = await user.generateAuthToken()
+        res.send({ user , token })
+    } catch (e) {
+        res.status(400).send()
+    }
+})
+
+
+router.post('/users/signin', async (req, res) => {
+    try {
+        const user = await new User(req.body)
+        const token = await user.generateAuthToken()
+
+        await user.save()
+        res.send({ user })
+
     } catch (e) {
         res.status(400).send()
     }
@@ -36,17 +52,8 @@ router.post('/users/login', async (req, res) => {
 
 //Route for Reading all instances of the User model from Users Collection via http GET request
 
-router.get("/users",  async (req, res) => {
-    
-    try {
-    const users = await User.find({})
-    res.send(users)
-    res.status(200)
-    } catch(e) {
-    res.status(500)
-    res.send(e)
-    }
- 
+router.get("/users/me", auth, async (req, res) => {
+ res.send(req.user)
 })
     
 //Route for Reading 1 User from Users Collection via their _id by a http GET request 
