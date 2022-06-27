@@ -66,6 +66,16 @@ router.post('/users/logout', auth, async (req, res) => {
     }
 })
 
+router.post('/users/logoutAll', auth,  async (req, res) => {
+    try {
+        req.user.tokens = []
+        req.user.save()
+        res.send()
+    } catch(e) {
+        res.status(500).send()
+    }
+})
+
 
 //Route for Reading A User Profile via their Session ID token
 
