@@ -24,6 +24,7 @@ router.post("/users", async (req, res) => {
   
 })
 
+//Route for logging in Users via their email and password
 
 router.post('/users/login', async (req, res) => {
     try {
@@ -35,22 +36,38 @@ router.post('/users/login', async (req, res) => {
     }
 })
 
+//Route for signing up users
 
 router.post('/users/signin', async (req, res) => {
     try {
         const user = await new User(req.body)
-        const token = await user.generateAuthToken()
-
         await user.save()
-        res.send({ user })
+        const token = await user.generateAuthToken()
+        res.status(201)
+        res.send({ user, token })
 
     } catch (e) {
         res.status(400).send()
     }
 })
 
+//Route for Logging out users by deleting Session ID token
 
-//Route for Reading all instances of the User model from Users Collection via http GET request
+router.post('/users/logout', auth, async (req, res) => {
+    try {
+        req.user.tokens = req.user.tokens.filter((token) => {
+            return token.token !== req.token
+        })
+        await req.user.save()
+
+        res.send()
+    } catch (e) {
+        res.status(500).send()
+    }
+})
+
+
+//Route for Reading A User Profile via their Session ID token
 
 router.get("/users/me", auth, async (req, res) => {
  res.send(req.user)
@@ -76,7 +93,6 @@ router.get("/users/:id", async (req, res) => {
 console.log(req.params)
 
 })
-
 
 //Route for Updating a User from the Users collection via http PATCH request
 
@@ -108,6 +124,7 @@ try {
 }
 })
 
+//Route for deleting users via their id
 
 router.delete('/users/:id', async (req, res) => {
     try {
