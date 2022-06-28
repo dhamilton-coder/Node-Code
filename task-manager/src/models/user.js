@@ -61,7 +61,7 @@ const UserSchema = new mongoose.Schema( {
 })
 
 UserSchema.virtual('tasks', {
-    ref: 'Task',
+    ref: 'task',
     localField: '_id',
     foreignField: 'author'
 })
