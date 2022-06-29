@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const mongo = require('mongodb')
 const mongoClient = mongo.MongoClient
 const validator = require('validator')
+const User = require('./user')
 
 //Schema to pass into Model
 
@@ -26,16 +27,6 @@ const taskSchema = new mongoose.Schema({
     }
 
 })
-
-taskSchema.pre('save', function(next) {
-const task = this
-
-console.log('Before a save')
-
-next()
-})
-
-
 
 
 //Create New Model Using Mongoose

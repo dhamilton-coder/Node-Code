@@ -7,6 +7,7 @@ const mongoClient = mongo.MongoClient
 const bcrypt = require('bcryptjs')
 const validator = require('validator')
 const jwt = require('jsonwebtoken')
+const Task = require('./task')
 
 //Schema to pass into Model
 
@@ -114,6 +115,14 @@ console.log('just before saving')
 
     next()
 })
+
+UserSchema.pre('remove', async function (next)  {
+const user = this
+await Task.deleteMany({ author : user._id})
+next()
+})
+
+
 
 //Create New Model Using Mongoose
 
