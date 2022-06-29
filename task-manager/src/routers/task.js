@@ -30,15 +30,19 @@ router.post("/tasks", auth,  async (req, res) => {
 //Route for Reading all Tasks created by a User via their Session ID Token and GET http request
 
 router.get("/tasks", auth, async (req, res) => {
+
+    if (req.query.completed === undefined) {
+        await Task.find({ author : req.user._id}).then((tasks) => {
+            res.send(tasks)
+        })}
+   
     try {
-    const tasks = await Task.find({ author : req.user._id})
+    const tasks = await Task.find({ author : req.user._id, completed: req.query.completed})
     res.send(tasks)
     res.status(200)
     } catch (e) {
-    res.status(500)
-    res.send(e)
+    res.status(500).send()
     }
-    
 })
 
 //Route for Reading 1 Task from the Task Collection via its Name by a http GET request 
@@ -102,12 +106,17 @@ router.delete('/tasks/:id', auth , async (req, res) => {
 })
 
 
-// router.delete('/tasks/me', auth, async (req, res) => {
+// router.delete('/tasks/me', auth , async (req, res) => {
 //     try {
-//         await Task.deleteMany({ author : req.user._id })
-//         res.status(200).send()
+//         const tasks = await Task.deleteMany({ author : req.user._id })
+
+//         if (!tasks) {
+//             return res.status(404).send()
+//         }
+
+//     res.send(tasks)    
 //     } catch (e) {
-//         res.status(400)
+//         res.status(500)
 //     }
 // })
 
