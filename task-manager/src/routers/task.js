@@ -1,37 +1,115 @@
+
 //Imports
 
-const mongoose = require('mongoose')
-const mongo = require('mongodb')
-const mongoClient = mongo.MongoClient
-const validator = require('validator')
-const User = require('./user')
+const express = require('express')
+const User = require('../models/user')
+const Task = require('../models/task')
+const auth = require('../middleware/auth')
+const bcrypt = require('bcryptjs')
+const router = new express.Router()
 
-//Schema to pass into Model
+//Route for Creating new Task via http POST request
 
-const taskSchema = new mongoose.Schema({
-    task: {
-        type: String,
-        required: true,
-        trim: true
-    },
-
-    completed: {
-        type: Boolean,
-        default: false
-    }, 
+router.post("/tasks", auth,  async (req, res) => {
+    const task = new Task({
+        ...req.body,
+        author: req.user._id
+    })
     
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'User'
+    try {
+       await task.save()
+       res.send(task)
+       res.status(201)
+    } catch (e) {
+        res.status(400)
+        res.send(e)
+    }
+    
+})
+
+//Route for Reading all Tasks created by a User via their Session ID Token and GET http request
+
+router.get("/tasks", auth, async (req, res) => {
+    try {
+    const tasks = await Task.find({ author : req.user._id})
+    res.send(tasks)
+    res.status(200)
+    } catch (e) {
+    res.status(500)
+    res.send(e)
+    }
+    
+})
+
+//Route for Reading 1 Task from the Task Collection via its Name by a http GET request 
+
+router.get("/tasks/me", auth, async (req, res) => {
+    
+    try {
+        const task = await Task.findOne({ author : req.user._id, task: req.body.task})
+        if (!task) {
+            return res.status(404).send()
+        }
+        res.send(task)
+    } catch (e) {
+        res.status(400)
     }
 
 })
 
+//Route for Updating a Task from the Tasks collection via http PATCH request
 
-//Create New Model Using Mongoose
+router.patch('/tasks/:id', auth, async (req, res) => {
+    const updates = Object.keys(req.body)
+    const allowedUpdates = ['task', 'completed']
+    const isValid = updates.every((update) => allowedUpdates.includes(update))
 
-const Task = mongoose.model('task', taskSchema)
+        if (!isValid) {
+        return res.status(400).send( {error : 'Invalid Update Data'} )
+       }
+       
+    try {
+        const task = await Task.findOne({ author : req.user._id, _id: req.params.id})
+       
+        if (!task) {
+            return  res.status(404).send()
+         }
+         
+        updates.forEach((update) => {
+            task[update] = req.body[update]
+        })
+        await task.save()
+        res.send(task)    
+    } catch (e) {
+        res.status(400).send()
+    }
+     
+})
 
 
-module.exports = Task
+router.delete('/tasks/:id', auth , async (req, res) => {
+    try {
+        const task = await Task.findOneAndDelete({ author : req.user._id, _id : req.params.id })
+
+        if (!task) {
+            return res.status(404).send()
+        }
+
+    res.send(task)    
+    } catch (e) {
+        res.status(500)
+    }
+})
+
+
+// router.delete('/tasks/me', auth, async (req, res) => {
+//     try {
+//         await Task.deleteMany({ author : req.user._id })
+//         res.status(200).send()
+//     } catch (e) {
+//         res.status(400)
+//     }
+// })
+
+
+module.exports = router
