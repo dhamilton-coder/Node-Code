@@ -1,102 +1,37 @@
-
 //Imports
 
-const express = require('express')
-const Task = require('../models/task')
-const bcrypt = require('bcryptjs')
-const router = new express.Router()
+const mongoose = require('mongoose')
+const mongo = require('mongodb')
+const mongoClient = mongo.MongoClient
+const validator = require('validator')
+const User = require('./user')
 
-//Route for Creating new Task via http POST request
+//Schema to pass into Model
 
-router.post("/tasks", async (req, res) => {
-    const task = new Task(req.body)
+const taskSchema = new mongoose.Schema({
+    task: {
+        type: String,
+        required: true,
+        trim: true
+    },
+
+    completed: {
+        type: Boolean,
+        default: false
+    }, 
     
-    try {
-       await task.save()
-       res.send(task)
-       res.status(201)
-    } catch (e) {
-        res.status(400)
-        res.send(e)
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
     }
-    
-})
 
-//Route for Reading all instances of the Task model from Tasks Collection via http GET request
-
-router.get("/tasks", async (req, res) => {
-    try {
-    const tasks = await  Task.find({})
-    res.send(tasks)
-    res.status(200)
-    } catch (e) {
-    res.status(500)
-    res.send(e)
-    }
-    
-})
-
-//Route for Reading 1 Task from the Task Collection via their _id by a http GET request 
-
-router.get("/tasks/:id", (req, res) => {
-    const _id = req.params.id
-
-    Task.findById(_id).then((user) => {
-
-        if (!user) {
-    return res.status(404).send()
-        }
-
-    res.send(user)
-    }).catch((e) => {
-        res.status(500)
-        res.send(e)
-    })
-})
-
-//Route for Updating a Task from the Tasks collection via http PATCH request
-
-router.patch('/tasks/:id', async (req, res) => {
-    const updates = Object.keys(req.body)
-    const allowedUpdates = ['task', 'completed']
-    const isValid = updates.every((update) => allowedUpdates.includes(update))
-
-        if (!isValid) {
-        return res.status(400).send( {error : 'Invalid Update Data'} )
-       }
-       
-    try {
-        const task = await Task.findById(req.params.id)
-       
-        if (!task) {
-            return  res.status(404).send()
-         }
-         
-        updates.forEach((update) => {
-            task[update] = req.body[update]
-        })
-        await task.save()
-        res.send(task)    
-    } catch (e) {
-        res.status(400).send()
-    }
-     
 })
 
 
-router.delete('/tasks/:id', async (req, res) => {
-    try {
-        const task = await Task.findByIdAndDelete(req.params.id)
+//Create New Model Using Mongoose
 
-        if (!task) {
-            return res.status(404).send()
-        }
-
-    res.send(task)    
-    } catch (e) {
-        res.status(500)
-    }
-})
+const Task = mongoose.model('task', taskSchema)
 
 
-module.exports = router
+module.exports = Task
