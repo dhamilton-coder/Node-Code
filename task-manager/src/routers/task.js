@@ -30,15 +30,21 @@ router.post("/tasks", auth,  async (req, res) => {
 //Route for Reading all Tasks created by a User via their Session ID Token and GET http request
 
 router.get("/tasks", auth, async (req, res) => {
-
-    if (req.query.completed === undefined) {
-        await Task.find({ author : req.user._id}).then((tasks) => {
-            res.send(tasks)
-        })}
+    const match = {}
    
+    if (req.query.completed) {
+        match.completed = req.query.completed === 'true'
+    }
     try {
-    const tasks = await Task.find({ author : req.user._id, completed: req.query.completed})
-    res.send(tasks)
+    await req.user.populate({
+        path : 'tasks',
+        match,
+        options : {
+            limit : parseInt(req.query.limit),
+            skip : parseInt(req.query.skip)
+        }
+    })
+    res.send(req.user.tasks)
     res.status(200)
     } catch (e) {
     res.status(500).send()
