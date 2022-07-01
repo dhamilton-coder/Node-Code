@@ -5,6 +5,7 @@ const express = require('express')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs')
+const multer = require('multer')
 const router = new express.Router()
 
 
@@ -119,7 +120,21 @@ router.delete('/users/me', auth,  async (req, res) => {
 })
 
 
+const upload = multer({
+    dest: 'profiles',
+    limits : {
+        fileSize: 3000000
+    }, fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpg|png|jpeg)$/)) {
+            return cb(new Error ('File must be an Image'))
+        }
+        cb(undefined, true)
+    }
+})
 
+router.post('/users/me/profile', auth, upload.single('upload'), (req, res) => {
+    res.send()
+})
 
 
 
