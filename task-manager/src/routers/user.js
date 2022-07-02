@@ -6,6 +6,7 @@ const User = require('../models/user')
 const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs')
 const multer = require('multer')
+const sharp = require('sharp')
 const router = new express.Router()
 
 
@@ -132,7 +133,12 @@ const upload = multer({
 })
 
 router.post('/users/me/profile', auth, upload.single('upload'), async (req, res) => {
-    req.user.avatar = req.file.buffer
+    if (!req.file) {
+        return res.status(400).send()
+    }
+    
+    const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+    req.user.avatar = buffer
     await req.user.save()
     res.send()
 }, (error, req, res, next) => {
@@ -148,5 +154,20 @@ router.delete('/users/me/profile', auth, async (req, res) => {
     res.status(400).send({ error : error})
 })
 
+
+router.get('/users/:id/avatar', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+
+        if (!user || !user.avatar) {
+            throw new Error('No Profile Found')
+        }
+
+        res.set('Content-Type', 'image/png')
+        res.send(user.avatar)
+    } catch (e) {
+        res.status(404).send({ error : e.message})
+    }
+})
 
 module.exports = router
