@@ -7,6 +7,7 @@ const auth = require('../middleware/auth')
 const bcrypt = require('bcryptjs')
 const multer = require('multer')
 const sharp = require('sharp')
+const { sendWelcomeEmail, sendCancelEmail } = require('../emails/account')
 const router = new express.Router()
 
 
@@ -41,11 +42,12 @@ router.post('/users/login', async (req, res) => {
 
 //Route for signing up users
 
-router.post('/users/signin', async (req, res) => {
+router.post('/users/signup', async (req, res) => {
     try {
         const user = await new User(req.body)
         await user.save()
         const token = await user.generateAuthToken()
+        sendWelcomeEmail(user.email, user.name)
         res.status(201)
         res.send({ user , token })
 
@@ -114,6 +116,7 @@ try {
 router.delete('/users/me', auth,  async (req, res) => {
     try {
         await req.user.remove()
+        sendCancelEmail(email, name)
         res.send(req.user)
     } catch (e) {
         res.status(500).send()
